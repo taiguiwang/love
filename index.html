@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Love Tree</title>
+	<link rel="shortcut icon" href="./img/key.jpg" type="image/x-icon">
+	<link type="text/css" rel="stylesheet" href="css/default.css">
+
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jscex.min.js"></script>
+	<script type="text/javascript" src="js/jscex-parser.js"></script>
+	<script type="text/javascript" src="js/jscex-jit.js"></script>
+	<script type="text/javascript" src="js/jscex-builderbase.min.js"></script>
+	<script type="text/javascript" src="js/jscex-async.min.js"></script>
+	<script type="text/javascript" src="js/jscex-async-powerpack.min.js"></script>
+	<script type="text/javascript" src="js/functions.js" charset="utf-8"></script>
+	<script type="text/javascript" src="js/love.js" charset="utf-8"></script>
+
+	<style type="text/css">
+		.STYLE1 {
+			color: #666666;
+		}
+	</style>
+</head>
+
+<body>
+	<!--===音乐：原谅——刘瑞琦======================================-->
+	<!-- <audio autoplay>
+		<source src="./music/告白气球-周杰伦.mp3" />
+	</audio> -->
+
+	<audio id="music" src="./music/告白气球-周杰伦.mp3" autoplay loop="false" autostart></audio>
+
+	<!--==============================================================-->
+	<div id="main">
+		<div id="error">
+			请将浏览器更新至最新版本再试试！
+		</div>
+		<div id="wrap">
+			<div id="text">
+				<div id="code">
+					<font color="#FF0000">
+						<span class="say">亲爱的：</span><br>
+						<span class="say"></span><br>
+						<span class="say">在一起不容易，缺点可以慢慢改，性格可以磨合，但错过了就真的过了，所以希望我们以后的路，能相互体谅轮流低头，彼此珍惜。</span><br>
+						<span class="say"></span><br>
+						<span class="say">慢慢真是个好词，慢慢遇见，慢慢喜欢，慢慢成长，所以我们慢慢来，我会尽我所能去爱你的。</span><br>
+						<span class="say"></span><br>
+						<span class="say">一路走来啊，跌跌撞撞，有苦有甜，有吵有闹，人一辈子很短，但真希望开头、过程、结尾、余生都是你。</span><br>
+						<span class="say"></span><br>
+						<span class="say"></span><br>
+						<span class="say"><span class="space"></span> -- 爱你的车厘子 --</span>
+					</font>
+					</p>
+				</div>
+			</div>
+			
+			<canvas id="canvas" width="1100" height="680"></canvas>
+		</div>
+
+	</div>
+	<script>
+		(function () {
+			var canvas = $('#canvas');
+			if (!canvas[0].getContext) {
+				$("#error").show();
+				return false;
+			}
+						
+			var width = canvas.width();
+			var height = canvas.height();
+			canvas.attr("width", width);
+			canvas.attr("height", height);
+			var opts = {
+				seed: {
+					x: width / 2 - 22, // come boby 的位置（拿画布的宽度 / 2(一半） - 22(scale大小)
+					color: "rgb(190, 26, 37)", // come boby 的颜色
+					scale: 2.2 // come boby 的大小
+				},
+				branch: [
+					[535, 680, 570, 250, 500, 200, 30, 100,
+						[
+							[540, 500, 455, 417, 340, 400, 13, 100, [
+								[450, 435, 434, 430, 394, 395, 2, 40]
+							]],
+							[550, 445, 600, 356, 680, 345, 12, 100, [
+								[578, 400, 648, 409, 661, 426, 3, 80]
+							]],
+							[539, 281, 537, 248, 534, 217, 3, 40],
+							[546, 397, 413, 247, 328, 244, 9, 80, [
+								[427, 286, 383, 253, 371, 205, 2, 40],
+								[498, 345, 435, 315, 395, 330, 4, 60]
+							]],
+							[546, 357, 608, 252, 678, 221, 6, 100, [
+								[590, 293, 646, 277, 648, 271, 2, 80]
+							]]
+						]
+					]
+				],
+				bloom: { // 爱心 
+					num: 1080, // 爱心的密度
+					width: 1080, // 爱心的宽度
+					height: 650, // 爱心的高度
+				},
+				footer: {
+					width: 1200, // 土地线的宽
+					height: 5, // 土地线的高
+					speed: 7, // 画土地线的速度
+				}
+			}
+
+			var tree = new Tree(canvas[0], width, height, opts);
+			var seed = tree.seed;
+			var foot = tree.footer;
+			var hold = 1;
+
+			canvas.click(function (e) {
+				var offset = canvas.offset(), x, y;
+				x = e.pageX - offset.left;
+				y = e.pageY - offset.top;
+				if (seed.hover(x, y)) {
+					hold = 0;
+					canvas.unbind("click");
+					canvas.unbind("mousemove");
+					canvas.removeClass('hand');
+				}
+			}).mousemove(function (e) {
+				var offset = canvas.offset(), x, y;
+				x = e.pageX - offset.left;
+				y = e.pageY - offset.top;
+				canvas.toggleClass('hand', seed.hover(x, y));
+			});
+
+			var seedAnimate = eval(Jscex.compile("async", function () {
+				seed.draw();
+				while (hold) {
+					$await(Jscex.Async.sleep(10));
+				}
+				while (seed.canScale()) {
+					seed.scale(0.95);
+					$await(Jscex.Async.sleep(10));
+				}
+				while (seed.canMove()) {
+					seed.move(0, 2);
+					foot.draw();
+					$await(Jscex.Async.sleep(10));
+				}
+			}));
+
+			var growAnimate = eval(Jscex.compile("async", function () {
+				do {
+					tree.grow();
+					$await(Jscex.Async.sleep(10));
+				} while (tree.canGrow());
+			}));
+
+			var flowAnimate = eval(Jscex.compile("async", function () {
+				do {
+					tree.flower(2);
+					$await(Jscex.Async.sleep(10));
+				} while (tree.canFlower());
+			}));
+
+			var moveAnimate = eval(Jscex.compile("async", function () {
+				tree.snapshot("p1", 240, 0, 610, 680);
+				while (tree.move("p1", 500, 0)) {
+					foot.draw();
+					$await(Jscex.Async.sleep(10));
+				}
+				foot.draw();
+				tree.snapshot("p2", 500, 0, 610, 680);
+
+				// 会有闪烁不得以这样做
+				canvas.parent().css("background", "url(" + tree.toDataURL('image/png') + ")");
+				canvas.css("background", "#ffe");
+				$await(Jscex.Async.sleep(300));
+				canvas.css("background", "none");
+			}));
+
+			var jumpAnimate = eval(Jscex.compile("async", function () {
+				var ctx = tree.ctx;
+				while (true) {
+					tree.ctx.clearRect(0, 0, width, height);
+					tree.jump();
+					foot.draw();
+					$await(Jscex.Async.sleep(25));
+				}
+			}));
+
+			
+			var textAnimate = eval(Jscex.compile("async", function () {
+				var together = new Date();
+				together.setFullYear(2022, 1, 15); 			//时间年月日
+				together.setHours(0);						//小时	
+				together.setMinutes(0);					//分钟
+				// together.setSeconds(10);					//秒前一位
+				// together.setMilliseconds(0);				//秒第二位
+				
+				$("#code").show().typewriter();
+				$("#clock-box").fadeIn(500);
+				while (true) {
+					timeElapse(together);
+					$await(Jscex.Async.sleep(1000));
+				}
+			}));
+
+			var runAsync = eval(Jscex.compile("async", function () {
+				$await(seedAnimate());
+				$await(growAnimate());
+				$await(flowAnimate());
+				$await(moveAnimate());
+
+				textAnimate().start();
+
+				$await(jumpAnimate());
+			}));
+
+			runAsync().start();
+		})();
+
+	</script>
+
+
+
+
+</body>
+
+</html>
